@@ -20,6 +20,7 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit.quantum_info import Operator
 from qclib.gates.mcx import McxVchainDirty, LinearMcx
+from qclib.util import get_cnot_count
 
 
 def apply_control_state_on_quantum_circuit(
@@ -226,16 +227,15 @@ class TestMcxVchainDirty(TestCase):
         mcx_v_chain_op = Operator(mcx_v_chain_circuit).data
         qiskit_mcx_op = Operator(qiskit_circuit).data
 
-        tr_mcx_v_chain = transpile(mcx_v_chain_circuit, basis_gates=['u', 'cx'])
-
-        tr_qiskit_mcx = transpile(qiskit_circuit, basis_gates=['u', 'cx'])
+        # tr_mcx_v_chain = transpile(mcx_v_chain_circuit, basis_gates=['u', 'cx'])
+        # tr_qiskit_mcx = transpile(qiskit_circuit, basis_gates=['u', 'cx'])
 
         np.allclose(mcx_v_chain_op, qiskit_mcx_op)
 
         if num_controls > 3:
             self.assertTrue(
                 10 + (num_controls - 2) * 8 + (num_target_qubit - 1) * 12
-                == tr_mcx_v_chain.count_ops()['cx']
+                == get_cnot_count(mcx_v_chain_circuit)
             )
 
 
