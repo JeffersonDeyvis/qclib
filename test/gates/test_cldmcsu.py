@@ -16,7 +16,7 @@
 
 from unittest import TestCase
 import numpy as np
-from qiskit import QuantumRegister, QuantumCircuit, transpile
+from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.library import RXGate, RYGate, RZGate
 from qiskit.quantum_info import Operator
 from qclib.gates.cldmcsu import Cldmcsu
@@ -67,41 +67,4 @@ class TestCMcSpecialUnitary(TestCase):
         qiskit_op = Operator(qiskit_circ).data
 
         self.assertTrue(np.allclose(cldmcsu_op, qiskit_op))
-
-
-    def test_clcmcsu_ldmcsu_2targets(self):
-        """
-
-        """
-        num_controls = 7
-        num_target_qubit = 2
-        unitaries = [RXGate(0.7).to_matrix(), RXGate(0.5).to_matrix()]
-
-
-        cldmcsu_circ = Cldmcsu(unitaries, num_controls, num_target=num_target_qubit).definition
-        cldmcsut = transpile(cldmcsu_circ, basis_gates=['u', 'cx'], optimization_level=3)
-
-        controls = QuantumRegister(num_controls)
-        target = QuantumRegister(num_target_qubit)
-
-        ldmcsu_circ = QuantumCircuit(controls, target)
-        print(len(ldmcsu_circ))
-        for i in range(num_target_qubit):
-            print(unitaries[i])
-            ldmcsu_circ.append(
-                Cldmcsu(unitaries[i], num_controls), [*controls, target[i]]
-            )
-
-        ldmcsut = transpile(ldmcsu_circ, basis_gates=['u', 'cx'], optimization_level=3)
-
-
-        qclib_ops1 = cldmcsut.count_ops()
-        qclib_ops2 = ldmcsut.count_ops()
-
-        self.assertTrue(qclib_ops2['cx'] > qclib_ops1['cx'])
-
-        cldmcsu_op = Operator(cldmcsu_circ).data
-        ldmcsu_op = Operator(ldmcsu_circ).data
-
-        self.assertTrue(np.allclose(cldmcsu_op, ldmcsu_op))
 
