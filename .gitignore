@@ -39,6 +39,7 @@ pip-delete-this-directory.txt
 
 # images
 *.png
+*.svg
 
 #notebooks
 *.ipynb
