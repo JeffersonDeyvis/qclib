@@ -63,7 +63,7 @@ class LogMcx(Gate):
             self.definition.cx(self.control_qubits[0], self.target_qubit[0])
         else:
             self.definition = QuantumCircuit(self.target_qubit)
-            self.definition.ccx(self.target_qubit[0])
+            self.definition.x(self.target_qubit[0])
 
 
     @staticmethod
