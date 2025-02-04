@@ -15,15 +15,10 @@
 """
 n-qubit controlled gate
 """
-from collections import namedtuple
 import numpy as np
-import qiskit
 from qiskit.circuit import Gate
-from qiskit import QuantumCircuit, QuantumRegister
-from qclib.gates.util import check_u2, apply_ctrl_state
-from qclib.gates.multitargetmcsu2 import MultiTargetMCSU2
-from qclib.gates.ldmcu import Ldmcu
-
+from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
+import matplotlib.pyplot as plt
 
 # pylint: disable=protected-access
 class LogMcx(Gate):
@@ -80,3 +75,41 @@ class LogMcx(Gate):
             target += 1
         return qc
 
+    @staticmethod
+    def circuit_one_clean_ancilla(n_ctrl):
+        tr = QuantumRegister(1, 't')
+        cr = QuantumRegister(n_ctrl, 'c')
+        anc = AncillaRegister(1, 'anc')
+        qubits_append = cr[3:n_ctrl]
+        controls = n_ctrl - int(np.floor(np.log2(n_ctrl))) - 2
+
+        circuit = QuantumCircuit(tr, cr, anc)
+        # step 1
+        circuit.ccx(cr[0], cr[1], anc[0])
+
+        # step 2
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[1], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
+        circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+
+        # step 3
+        circuit.mcx([anc[0], cr[0], cr[2]], tr[0])
+
+        # step 4
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
+        circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+
+        # step 5
+        circuit.ccx(cr[0], cr[1], anc[0])
+
+        return circuit
+
+
+if __name__ == '__main__':
+
+    c = LogMcx.circuit_one_clean_ancilla(9)
+    c.draw('mpl', scale=.5)
+    plt.show()
