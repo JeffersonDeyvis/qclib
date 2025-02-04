@@ -35,6 +35,4 @@ class TestLogToffoli(TestCase):
 
     def test_primitive_circuit(self):
         log_mcx = LogMcx(3)
-        log_mcx.define()
-
         log_mcx.primitive_circuit(2,1)
