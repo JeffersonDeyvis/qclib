@@ -33,8 +33,13 @@ class TestLogToffoli(TestCase):
         ops = log_mcx.definition.count_ops()
         self.assertEqual(ops.get('x', 0), 1)
 
-    def test_primitive_circuit(self):
-        log_mcx = LogMcx(3)
-        log_mcx.primitive_circuit(2,1)
+    def test_primitive_circuit_count_gates(self):
+
+        rng_n_ctrls = np.random.randint(2, 10)
+        n_targets = rng_n_ctrls // 2
+        qc = LogMcx.primitive_circuit(rng_n_ctrls, n_targets)
+
+        self.assertEqual(qc.count_ops().get('x', 0), n_targets)
+        self.assertEqual(qc.count_ops().get('ccx', 0), n_targets)
 
 
