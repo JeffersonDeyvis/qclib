@@ -156,7 +156,7 @@ class LogMcx(Gate):
 
 if __name__ == '__main__':
 
-    c = LogMcx.circuit_one_dirty_ancilla(9)
-    # c = LogMcx.primitive_circuit(4, 2)
+    c = LogMcx.circuit_one_clean_ancilla(9)
     c.draw('mpl', scale=.8)
     plt.show()
+

@@ -9,7 +9,7 @@
 """ Test qclib.gate.log_mcx_gate """
 
 from unittest import TestCase
-from qiskit.quantum_info import Operator
+from qiskit.quantum_info import Operator, Statevector
 import numpy as np
 from qiskit import QuantumCircuit
 from qclib.gates.logmcx import LogMcx
@@ -52,25 +52,38 @@ class TestLogToffoli(TestCase):
         self.assertTrue(np.allclose(u2, u1))
 
 
-    # def test_circuit_one_clean_ancilla(self):
-    #     n_controls = 9
-    #     target = [0]
-    #     qc1 = LogMcx.circuit_one_clean_ancilla(n_controls) # mcx, 11 qubits sendo o ultimo clean ancila
-    #     qc2 = QuantumCircuit(n_controls+1) # 10 qubits
-    #     qc2.mcx(list(range(1, n_controls+1)), target)  # mcx com 9 controles
-    #
-    #
-    #     u2 = Operator(qc2)
-    #     projector_ancilla = Operator([[1, 0], [0, 0]])
-    #     expected_u2 = projector_ancilla.tensor(u2)
-    #
-    #     u1 = Operator(qc1).data
-    #     identity = np.eye(2 ** (n_controls + 1))
-    #     total_projector = np.kron(identity, projector_ancilla)
-    #
-    #     projected_op = total_projector @ u1
-    #
-    #     self.assertTrue(np.allclose(projected_op, expected_u2.data))
+    def test_circuit_one_clean_ancilla(self):
+
+        n_controls = 9
+        target = [0]
+        n = n_controls + 1
+        qc1 = QuantumCircuit(n)
+        qc1.mcx(list(range(1, n)), target)
+        qc2 = LogMcx.circuit_one_dirty_ancilla(n_controls)
+        ket_zero = Statevector.from_label('0')
+
+        op1 = Operator(qc1).data
+        op2 = Operator(qc2).data
+
+        for k in range(2 ** n):
+
+            # base state |K>
+            input_data = Statevector.from_int(k, dims=2 ** n)
+
+            # op1 |k> = |K'>
+            output1 = input_data.evolve(op1)
+
+            # |K0>
+            input_qc2 = ket_zero.tensor(input_data)
+
+            # op2 |K0> = |K'0>
+            output2 = input_qc2.evolve(op2)
+
+            # |K'> \otimes |0> = |K'0>
+            expected_output = ket_zero.tensor(output1)
+
+            self.assertTrue(output2.equiv(expected_output))
+
 
 
 
