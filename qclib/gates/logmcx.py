@@ -77,6 +77,7 @@ class LogMcx(Gate):
 
     @staticmethod
     def circuit_one_clean_ancilla(n_ctrl):
+
         tr = QuantumRegister(1, 't')
         cr = QuantumRegister(n_ctrl, 'c')
         anc = AncillaRegister(1, 'anc')
@@ -100,16 +101,62 @@ class LogMcx(Gate):
         circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
         circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
         circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
-        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[1], cr[3], cr[4]])
 
         # step 5
         circuit.ccx(cr[0], cr[1], anc[0])
 
         return circuit
 
+    @staticmethod
+    def circuit_one_dirty_ancilla(n_ctrl):
+
+        tr = QuantumRegister(1, 't')
+        cr = QuantumRegister(n_ctrl, 'c')
+        anc = AncillaRegister(1, 'anc')
+        qubits_append = cr[3:n_ctrl]
+        controls = n_ctrl - int(np.floor(np.log2(n_ctrl))) - 2
+
+        circuit = QuantumCircuit(tr, cr, anc)
+
+        # step 1
+        circuit.ccx(cr[0], cr[1], anc[0])
+
+        # step 2
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[1], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
+        circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+
+        circuit.mcx([anc[0], cr[2], cr[0]], tr[0])
+
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
+        circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[1], cr[3], cr[4]])
+
+        # step 3
+        circuit.ccx(cr[0], cr[1], anc[0])
+
+        # step 2
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[1], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
+        circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+
+        circuit.mcx([anc[0], cr[2], cr[0]], tr[0])
+
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[2], cr[3], cr[4]])
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[0], cr[1], cr[2]])
+        circuit.append(LogMcx.primitive_circuit(controls, 2), qubits_append)
+        circuit.append(LogMcx.primitive_circuit(2, 1), [cr[1], cr[3], cr[4]])
+
+        return circuit
+
 
 if __name__ == '__main__':
 
-    c = LogMcx.circuit_one_clean_ancilla(9)
-    c.draw('mpl', scale=.5)
+    c = LogMcx.circuit_one_dirty_ancilla(9)
+    # c = LogMcx.primitive_circuit(4, 2)
+    c.draw('mpl', scale=.8)
     plt.show()

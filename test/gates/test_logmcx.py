@@ -38,12 +38,18 @@ class TestLogToffoli(TestCase):
         self.assertEqual(qc.count_ops().get('x', 0), n_targets)
         self.assertEqual(qc.count_ops().get('ccx', 0), n_targets)
 
-    @staticmethod
-    def reduzir_matriz(U, num_qubits, qubit_aux=3):
-        """Reduz a matriz unitária ao subespaço onde o último qubit está em |0>."""
-        n = 2 ** num_qubits
-        indices = [i for i in range(n) if (i & (1 << qubit_aux)) == 0]
-        return U[np.ix_(indices, indices)]
+
+    def test_circuit_one_dirty_ancilla(self):
+        n_controls = 9
+        target = [0]
+        qc1 = LogMcx.circuit_one_dirty_ancilla(n_controls)
+        qc2 = QuantumCircuit(n_controls+2)
+        qc2.mcx(list(range(1, n_controls+1)), target)
+
+        u2 = Operator(qc2).data
+        u1 = Operator(qc1).data
+
+        self.assertTrue(np.allclose(u2, u1))
 
 
     # def test_circuit_one_clean_ancilla(self):
@@ -56,7 +62,7 @@ class TestLogToffoli(TestCase):
     #
     #     u2 = Operator(qc2)
     #     projector_ancilla = Operator([[1, 0], [0, 0]])
-    #     expected_u2 = u2.tensor(projector_ancilla)
+    #     expected_u2 = projector_ancilla.tensor(u2)
     #
     #     u1 = Operator(qc1).data
     #     identity = np.eye(2 ** (n_controls + 1))
